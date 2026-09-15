@@ -5,13 +5,17 @@
   const qs = new URLSearchParams(window.location.search);
   const DEMO = qs.get("demo") === "1" || window.parent === window;
 
+  const MASTER_API =
+    "https://app.connect.trimble.com/tc/api/2.0";
+
   const state = {
     API: null,
     token: null,
     project: null,
     user: null,
     models: [],
-    sharing: false
+    sharing: false,
+    coreApiBase: null
   };
 
   const el = (id) => document.getElementById(id);
@@ -19,6 +23,7 @@
   const $ = {
     contextText: el("contextText"),
     loadedCount: el("loadedCount"),
+
     statusCard: el("statusCard"),
     statusIcon: el("statusIcon"),
     statusTitle: el("statusTitle"),
@@ -56,7 +61,10 @@
     mailResult: el("mailResult")
   };
 
-  document.addEventListener("DOMContentLoaded", init);
+  document.addEventListener(
+    "DOMContentLoaded",
+    init
+  );
 
   async function init() {
     bindEvents();
@@ -79,38 +87,77 @@
   }
 
   function bindEvents() {
-    $.refreshBtn.addEventListener("click", refreshContext);
-    $.openShareBtn.addEventListener("click", openShareDialog);
-    $.closeModalBtn.addEventListener("click", closeShareDialog);
-    $.cancelBtn.addEventListener("click", closeShareDialog);
-    $.toggleAllBtn.addEventListener("click", toggleAllModels);
-    $.shareBtn.addEventListener("click", submitShare);
-    $.copyBtn.addEventListener("click", copyShareLink);
+    $.refreshBtn.addEventListener(
+      "click",
+      refreshContext
+    );
 
-    $.doneBtn.addEventListener("click", () => {
-      $.resultBackdrop.hidden = true;
-    });
+    $.openShareBtn.addEventListener(
+      "click",
+      openShareDialog
+    );
 
-    $.modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === $.modalBackdrop) {
-        closeShareDialog();
+    $.closeModalBtn.addEventListener(
+      "click",
+      closeShareDialog
+    );
+
+    $.cancelBtn.addEventListener(
+      "click",
+      closeShareDialog
+    );
+
+    $.toggleAllBtn.addEventListener(
+      "click",
+      toggleAllModels
+    );
+
+    $.shareBtn.addEventListener(
+      "click",
+      submitShare
+    );
+
+    $.copyBtn.addEventListener(
+      "click",
+      copyShareLink
+    );
+
+    $.doneBtn.addEventListener(
+      "click",
+      () => {
+        $.resultBackdrop.hidden = true;
       }
-    });
+    );
+
+    $.modalBackdrop.addEventListener(
+      "click",
+      (event) => {
+        if (
+          event.target ===
+          $.modalBackdrop
+        ) {
+          closeShareDialog();
+        }
+      }
+    );
   }
 
   function setDefaults() {
-    $.expiryInput.value = formatDateForInput(
-      addMonths(
-        new Date(),
-        CONFIG.defaultExpiryMonths || 2
-      )
-    );
+    $.expiryInput.value =
+      formatDateForInput(
+        addMonths(
+          new Date(),
+          CONFIG.defaultExpiryMonths || 2
+        )
+      );
 
     $.accessSelect.value =
       CONFIG.defaultPermission || "VIEW";
 
     $.latestVersionInput.checked =
-      Boolean(CONFIG.defaultUseLatestVersion);
+      Boolean(
+        CONFIG.defaultUseLatestVersion
+      );
   }
 
   function loadDemoData() {
@@ -125,6 +172,9 @@
       firstName: "Demo",
       lastName: "Gebruiker"
     };
+
+    state.coreApiBase =
+      "https://app21.connect.trimble.com/tc/api/2.0";
 
     state.models = [
       {
@@ -153,7 +203,8 @@
       }
     ];
 
-    $.emailInput.value = state.user.email;
+    $.emailInput.value =
+      state.user.email;
   }
 
   async function connectWorkspace() {
@@ -187,11 +238,22 @@
     }
   }
 
-  function onWorkspaceEvent(event, args) {
-    if (event === "extension.accessToken") {
+  function onWorkspaceEvent(
+    event,
+    args
+  ) {
+    if (
+      event ===
+      "extension.accessToken"
+    ) {
       const value =
         args &&
-        Object.prototype.hasOwnProperty.call(args, "data")
+        Object.prototype
+          .hasOwnProperty
+          .call(
+            args,
+            "data"
+          )
           ? args.data
           : args;
 
@@ -223,23 +285,50 @@
         project,
         user,
         models
-      ] = await Promise.all([
-        state.API.project.getProject(),
-        state.API.user.getUser(),
-        state.API.viewer.getModels()
-      ]);
+      ] =
+        await Promise.all([
+          state.API.project.getProject(),
+          state.API.user.getUser(),
+          state.API.viewer.getModels()
+        ]);
 
       state.project = project;
       state.user = user;
 
-      const loaded = (models || []).filter(
-        (m) =>
-          String(m.state || "").toLowerCase() === "loaded"
+      /*
+       * BELANGRIJK:
+       * Zoek automatisch het correcte
+       * regionale Core API endpoint.
+       */
+      state.coreApiBase =
+        await resolveRegionalCoreApiBase(
+          project
+        );
+
+      console.log(
+        "ALTEZ project",
+        project
       );
+
+      console.log(
+        "ALTEZ regional Core API",
+        state.coreApiBase
+      );
+
+      const loaded =
+        (models || []).filter(
+          (model) =>
+            String(
+              model.state || ""
+            ).toLowerCase() ===
+            "loaded"
+        );
 
       const resolved =
         await Promise.all(
-          loaded.map(resolveLoadedModel)
+          loaded.map(
+            resolveLoadedModel
+          )
         );
 
       state.models =
@@ -250,7 +339,8 @@
         user &&
         user.email
       ) {
-        $.emailInput.value = user.email;
+        $.emailInput.value =
+          user.email;
       }
 
       renderHome();
@@ -266,11 +356,134 @@
       );
 
     } finally {
-      $.refreshBtn.disabled = false;
+      $.refreshBtn.disabled =
+        false;
     }
   }
 
-  async function resolveLoadedModel(model) {
+  async function resolveRegionalCoreApiBase(
+    project
+  ) {
+    const location =
+      normalizeLocation(
+        project &&
+        project.location
+      );
+
+    console.log(
+      "Trimble project location:",
+      location
+    );
+
+    /*
+     * Eerst de officiële Trimble
+     * Regions API proberen.
+     */
+    try {
+      const response =
+        await fetch(
+          `${MASTER_API}/regions`,
+          {
+            method: "GET",
+            headers: {
+              Accept:
+                "application/json"
+            }
+          }
+        );
+
+      if (response.ok) {
+        const regions =
+          await response.json();
+
+        if (
+          Array.isArray(
+            regions
+          )
+        ) {
+          const region =
+            regions.find(
+              (item) =>
+                normalizeLocation(
+                  item &&
+                  item.location
+                ) === location
+            );
+
+          if (
+            region &&
+            region["tc-api"]
+          ) {
+            return String(
+              region["tc-api"]
+            ).replace(
+              /\/$/,
+              ""
+            );
+          }
+        }
+      }
+
+    } catch (error) {
+      console.warn(
+        "Trimble Regions API kon niet worden gelezen.",
+        error
+      );
+    }
+
+    /*
+     * Fallback voor het geval
+     * region discovery tijdelijk
+     * niet bereikbaar is.
+     */
+    const fallback = {
+      northamerica:
+        "https://app.connect.trimble.com/tc/api/2.0",
+
+      europe:
+        "https://app21.connect.trimble.com/tc/api/2.0",
+
+      asia:
+        "https://app31.connect.trimble.com/tc/api/2.0",
+
+      australia:
+        "https://app32.connect.trimble.com/tc/api/2.0",
+
+      unitedkingdom:
+        "https://app22.connect.trimble.com/tc/api/2.0"
+    };
+
+    if (
+      fallback[location]
+    ) {
+      return fallback[
+        location
+      ];
+    }
+
+    /*
+     * Laatste fallback.
+     */
+    return MASTER_API;
+  }
+
+  function normalizeLocation(
+    value
+  ) {
+    return String(
+      value || ""
+    )
+      .trim()
+      .toLowerCase()
+      .replace(
+        /[\s_-]/g,
+        ""
+      );
+  }
+
+  async function resolveLoadedModel(
+    model
+  ) {
     try {
       const file =
         await state.API.viewer.getLoadedModel(
@@ -278,14 +491,16 @@
         );
 
       return {
-        modelId: model.id,
+        modelId:
+          model.id,
 
         fileId:
           (file && file.id) ||
           model.id,
 
         versionId:
-          (file && file.versionId) ||
+          (file &&
+            file.versionId) ||
           model.versionId,
 
         name:
@@ -308,7 +523,8 @@
       );
 
       return {
-        modelId: model.id,
+        modelId:
+          model.id,
 
         fileId:
           model.id,
@@ -330,7 +546,8 @@
   }
 
   function renderHome() {
-    const count = state.models.length;
+    const count =
+      state.models.length;
 
     $.loadedCount.textContent =
       String(count);
@@ -341,10 +558,14 @@
             state.project.name ||
             "Trimble Connect project"
           } · ${count} geladen model${
-            count === 1 ? "" : "len"
+            count === 1
+              ? ""
+              : "len"
           }`
         : `${count} geladen model${
-            count === 1 ? "" : "len"
+            count === 1
+              ? ""
+              : "len"
           }`;
 
     $.openShareBtn.disabled =
@@ -370,26 +591,36 @@
 
     renderModelList();
 
-    $.modalBackdrop.hidden = false;
+    $.modalBackdrop.hidden =
+      false;
   }
 
   function closeShareDialog() {
-    if (state.sharing) {
+    if (
+      state.sharing
+    ) {
       return;
     }
 
-    $.modalBackdrop.hidden = true;
+    $.modalBackdrop.hidden =
+      true;
   }
 
   function renderModelList() {
     $.modelList.innerHTML = "";
 
     state.models.forEach(
-      (model, index) => {
+      (
+        model,
+        index
+      ) => {
         const row =
-          document.createElement("label");
+          document.createElement(
+            "label"
+          );
 
-        row.className = "model-row";
+        row.className =
+          "model-row";
 
         row.innerHTML = `
           <input
@@ -417,24 +648,30 @@
             model.versionId ||
             "onbekend"
           }${
-            model.isLatestVersion === false
+            model.isLatestVersion ===
+            false
               ? " · niet de laatste versie"
               : ""
           }`;
 
-        $.modelList.appendChild(row);
+        $.modelList.appendChild(
+          row
+        );
       }
     );
 
     updateToggleAllLabel();
 
     $.modelList
-      .querySelectorAll(".model-check")
-      .forEach((cb) =>
-        cb.addEventListener(
-          "change",
-          updateToggleAllLabel
-        )
+      .querySelectorAll(
+        ".model-check"
+      )
+      .forEach(
+        (checkbox) =>
+          checkbox.addEventListener(
+            "change",
+            updateToggleAllLabel
+          )
       );
   }
 
@@ -449,12 +686,16 @@
     const allChecked =
       boxes.length &&
       boxes.every(
-        (b) => b.checked
+        (box) =>
+          box.checked
       );
 
-    boxes.forEach((b) => {
-      b.checked = !allChecked;
-    });
+    boxes.forEach(
+      (box) => {
+        box.checked =
+          !allChecked;
+      }
+    );
 
     updateToggleAllLabel();
   }
@@ -470,7 +711,8 @@
     const allChecked =
       boxes.length &&
       boxes.every(
-        (b) => b.checked
+        (box) =>
+          box.checked
       );
 
     $.toggleAllBtn.textContent =
@@ -486,9 +728,11 @@
       )
     )
       .map(
-        (cb) =>
+        (checkbox) =>
           state.models[
-            Number(cb.dataset.index)
+            Number(
+              checkbox.dataset.index
+            )
           ]
       )
       .filter(Boolean);
@@ -506,7 +750,9 @@
     const expiry =
       $.expiryInput.value;
 
-    if (!models.length) {
+    if (
+      !models.length
+    ) {
       errors.push(
         "Selecteer minstens één model."
       );
@@ -514,14 +760,18 @@
 
     if (
       !email ||
-      !isValidEmail(email)
+      !isValidEmail(
+        email
+      )
     ) {
       errors.push(
         "Vul een geldig e-mailadres in."
       );
     }
 
-    if (!expiry) {
+    if (
+      !expiry
+    ) {
       errors.push(
         "Kies een vervaldatum."
       );
@@ -531,7 +781,8 @@
       expiry &&
       new Date(
         `${expiry}T23:59:59`
-      ) <= new Date()
+      ) <=
+        new Date()
     ) {
       errors.push(
         "De vervaldatum moet in de toekomst liggen."
@@ -547,16 +798,18 @@
     const errors =
       validateForm();
 
-    if (errors.length) {
+    if (
+      errors.length
+    ) {
       $.validationBox.hidden =
         false;
 
       $.validationBox.innerHTML =
         errors
           .map(
-            (x) =>
+            (error) =>
               `<div>• ${escapeHtml(
-                x
+                error
               )}</div>`
           )
           .join("");
@@ -591,7 +844,9 @@
         await sleep(650);
 
         result = {
-          id: "demo-share-id",
+          id:
+            "demo-share-id",
+
           url:
             "https://web.connect.trimble.com/demo/share?stoken=DEMO-ALTEZ-DATA-DELEN"
         };
@@ -602,8 +857,22 @@
 
         if (!token) {
           throw new Error(
-            "Geen Trimble access token ontvangen. Geef de extensie toestemming voor API-toegang."
+            "Geen Trimble access token ontvangen."
           );
+        }
+
+        /*
+         * Voor de zekerheid opnieuw
+         * het regionale endpoint bepalen
+         * als dat nog niet geladen is.
+         */
+        if (
+          !state.coreApiBase
+        ) {
+          state.coreApiBase =
+            await resolveRegionalCoreApiBase(
+              state.project
+            );
         }
 
         const payload =
@@ -617,7 +886,12 @@
           });
 
         console.log(
-          "ALTEZ Share request",
+          "ALTEZ Share API:",
+          state.coreApiBase
+        );
+
+        console.log(
+          "ALTEZ Share payload:",
           payload
         );
 
@@ -629,7 +903,9 @@
       }
 
       const shareUrl =
-        extractShareUrl(result);
+        extractShareUrl(
+          result
+        );
 
       if (!shareUrl) {
         throw new Error(
@@ -661,10 +937,14 @@
         false;
 
       $.apiErrorText.textContent =
-        humanError(error);
+        humanError(
+          error
+        );
 
       $.apiErrorDetails.textContent =
-        technicalError(error);
+        technicalError(
+          error
+        );
 
     } finally {
       setSharing(false);
@@ -672,8 +952,8 @@
   }
 
   /*
-   * Exacte payload zoals de native
-   * Trimble Connect Share Data-functie.
+   * Exact formaat van de native
+   * Trimble Connect Share Data request.
    */
   function buildSharePayload({
     models,
@@ -735,12 +1015,17 @@
   ) {
     const apiBase =
       String(
-        CONFIG.coreApiBase ||
-        "https://app.connect.trimble.com/tc/api/2.0"
+        state.coreApiBase ||
+        MASTER_API
       ).replace(
         /\/$/,
         ""
       );
+
+    console.log(
+      "POST share naar:",
+      `${apiBase}/shares`
+    );
 
     const response =
       await fetch(
@@ -775,13 +1060,18 @@
     try {
       body =
         raw
-          ? JSON.parse(raw)
+          ? JSON.parse(
+              raw
+            )
           : null;
+
     } catch (_) {
       body = raw;
     }
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
       const error =
         new Error(
           extractServerMessage(
@@ -799,11 +1089,18 @@
       error.requestPayload =
         payload;
 
+      error.apiBase =
+        apiBase;
+
+      error.projectLocation =
+        state.project &&
+        state.project.location;
+
       throw error;
     }
 
     console.log(
-      "ALTEZ Share response",
+      "ALTEZ Share response:",
       body
     );
 
@@ -811,7 +1108,9 @@
   }
 
   async function getAccessToken() {
-    if (state.token) {
+    if (
+      state.token
+    ) {
       return state.token;
     }
 
@@ -835,7 +1134,7 @@
       result === "denied"
     ) {
       throw new Error(
-        "Toegang tot de Trimble access token is geweigerd. Pas de extensierechten aan in Trimble Connect."
+        "Toegang tot de Trimble access token is geweigerd."
       );
     }
 
@@ -856,7 +1155,9 @@
     return null;
   }
 
-  function extractShareUrl(result) {
+  function extractShareUrl(
+    result
+  ) {
     if (!result) {
       return "";
     }
@@ -866,7 +1167,9 @@
       result.link ||
       result.shareUrl;
 
-    if (direct) {
+    if (
+      direct
+    ) {
       return direct;
     }
 
@@ -877,12 +1180,14 @@
     ) {
       const found =
         result.objects.find(
-          (o) =>
-            o &&
-            o.url
+          (object) =>
+            object &&
+            object.url
         );
 
-      if (found) {
+      if (
+        found
+      ) {
         return found.url;
       }
     }
@@ -948,7 +1253,9 @@
     }
   }
 
-  function setSharing(active) {
+  function setSharing(
+    active
+  ) {
     state.sharing =
       active;
 
@@ -1006,7 +1313,8 @@
     }
 
     if (
-      typeof body === "string"
+      typeof body ===
+      "string"
     ) {
       return body;
     }
@@ -1020,7 +1328,9 @@
     );
   }
 
-  function humanError(error) {
+  function humanError(
+    error
+  ) {
     return (
       error &&
       error.message
@@ -1032,14 +1342,26 @@
         );
   }
 
-  function technicalError(error) {
+  function technicalError(
+    error
+  ) {
     const safe = {
       message:
-        humanError(error),
+        humanError(
+          error
+        ),
 
       status:
         error &&
         error.status,
+
+      apiBase:
+        error &&
+        error.apiBase,
+
+      projectLocation:
+        error &&
+        error.projectLocation,
 
       responseBody:
         error &&
@@ -1099,10 +1421,10 @@
   function formatDateForInput(
     date
   ) {
-    const y =
+    const year =
       date.getFullYear();
 
-    const m =
+    const month =
       String(
         date.getMonth() + 1
       ).padStart(
@@ -1110,7 +1432,7 @@
         "0"
       );
 
-    const d =
+    const day =
       String(
         date.getDate()
       ).padStart(
@@ -1118,18 +1440,11 @@
         "0"
       );
 
-    return `${y}-${m}-${d}`;
+    return (
+      `${year}-${month}-${day}`
+    );
   }
 
-  /*
-   * Trimble gebruikt bijvoorbeeld:
-   *
-   * 2026-11-16T23:59:59+0100
-   *
-   * en dus NIET:
-   *
-   * 2026-11-16T22:59:59.000Z
-   */
   function dateInputToTrimbleExpiry(
     value
   ) {
@@ -1137,13 +1452,19 @@
       value.split("-");
 
     const year =
-      Number(parts[0]);
+      Number(
+        parts[0]
+      );
 
     const month =
-      Number(parts[1]);
+      Number(
+        parts[1]
+      );
 
     const day =
-      Number(parts[2]);
+      Number(
+        parts[2]
+      );
 
     const date =
       new Date(
@@ -1169,7 +1490,7 @@
         offsetMinutes
       );
 
-    const hours =
+    const offsetHours =
       String(
         Math.floor(
           absolute / 60
@@ -1179,7 +1500,7 @@
         "0"
       );
 
-    const minutes =
+    const offsetMins =
       String(
         absolute % 60
       ).padStart(
@@ -1209,7 +1530,7 @@
     return (
       `${y}-${m}-${d}` +
       `T23:59:59` +
-      `${sign}${hours}${minutes}`
+      `${sign}${offsetHours}${offsetMins}`
     );
   }
 
@@ -1221,7 +1542,9 @@
     );
   }
 
-  function sleep(ms) {
+  function sleep(
+    ms
+  ) {
     return new Promise(
       (resolve) =>
         setTimeout(
@@ -1238,13 +1561,13 @@
       value
     ).replace(
       /[&<>'"]/g,
-      (c) => ({
+      (character) => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
         "'": "&#39;",
         '"': "&quot;"
-      }[c])
+      }[character])
     );
   }
 
