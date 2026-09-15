@@ -1,0 +1,9 @@
+{
+  "title": "ALTEZ Data Delen",
+  "url": "https://jonasvanhecke-98.github.io/Altez_Data_Delen/",
+  "icon": "https://jonasvanhecke-98.github.io/Altez_Data_Delen/icon.svg",
+  "description": "Deel de momenteel geladen 3D-modellen rechtstreeks vanuit de Trimble Connect 3D Viewer.",
+  "extensionType": [
+    "3dviewer"
+  ]
+}

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>ALTEZ Data Delen</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div>
+        <div class="eyebrow">ALTEZ</div>
+        <h1>Data delen</h1>
+        <p id="contextText" class="context-text">Actieve modellen worden geladen...</p>
+      </div>
+      <button id="refreshBtn" class="icon-btn" type="button" title="Vernieuwen" aria-label="Vernieuwen">
+        <span aria-hidden="true">↻</span>
+      </button>
+    </header>
+
+    <section id="statusCard" class="status-card" hidden>
+      <div id="statusIcon" class="status-icon">i</div>
+      <div>
+        <strong id="statusTitle">Status</strong>
+        <div id="statusMessage"></div>
+      </div>
+    </section>
+
+    <section class="summary-card">
+      <div class="summary-number" id="loadedCount">0</div>
+      <div>
+        <strong>geladen modellen</strong>
+        <div class="muted">Alle geladen modellen worden standaard geselecteerd.</div>
+      </div>
+    </section>
+
+    <button id="openShareBtn" class="primary-btn full" type="button" disabled>
+      Data delen
+    </button>
+
+    <p class="footnote">
+      De share wordt pas aangemaakt wanneer je in het venster op <strong>Delen</strong> klikt.
+    </p>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="modalTitle">Data delen</h2>
+          <p id="modalProject" class="muted"></p>
+        </div>
+        <button id="closeModalBtn" class="icon-btn close-btn" type="button" aria-label="Sluiten">×</button>
+      </header>
+
+      <div class="modal-body">
+        <section class="form-section">
+          <div class="section-title-row">
+            <label>Modellen</label>
+            <button id="toggleAllBtn" class="link-btn" type="button">Alles deselecteren</button>
+          </div>
+          <div id="modelList" class="model-list"></div>
+        </section>
+
+        <section class="form-section">
+          <label for="shareMode">Delen met</label>
+          <select id="shareMode">
+            <option value="PUBLIC" selected>Iedere gebruiker met de koppeling</option>
+          </select>
+          <div class="field-help">Iedereen met de koppeling kan de gedeelde modellen openen zonder in te loggen.</div>
+        </section>
+
+        <section class="form-section">
+          <label for="emailInput">E-mailadres</label>
+          <input id="emailInput" type="email" autocomplete="email" placeholder="naam@bedrijf.be" />
+          <div class="field-help">Trimble stuurt de deelmail naar dit adres. Je kunt die mail daarna doorsturen.</div>
+        </section>
+
+        <section class="form-section">
+          <label for="noteInput">Notitie <span class="optional">optioneel</span></label>
+          <textarea id="noteInput" rows="3" placeholder="Voeg eventueel een bericht toe aan de deelmail."></textarea>
+        </section>
+
+        <div class="form-grid">
+          <section class="form-section">
+            <label for="expiryInput">Koppeling verloopt op</label>
+            <input id="expiryInput" type="date" />
+          </section>
+
+          <section class="form-section">
+            <label for="accessSelect">Toegang</label>
+            <select id="accessSelect">
+              <option value="VIEW" selected>Alleen bekijken</option>
+              <option value="VIEW_DOWNLOAD">Bekijken en downloaden</option>
+            </select>
+          </section>
+        </div>
+
+        <section class="form-section checkbox-section">
+          <label class="checkbox-row">
+            <input id="latestVersionInput" type="checkbox" />
+            <span>
+              <strong>Laatste versie tonen</strong>
+              <small>Uitgeschakeld deelt de momenteel geladen modelversie.</small>
+            </span>
+          </label>
+        </section>
+
+        <div id="validationBox" class="validation-box" hidden></div>
+        <div id="apiErrorBox" class="api-error-box" hidden>
+          <strong>Delen is niet gelukt</strong>
+          <div id="apiErrorText"></div>
+          <details>
+            <summary>Technische details</summary>
+            <pre id="apiErrorDetails"></pre>
+          </details>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button id="cancelBtn" class="secondary-btn" type="button">Annuleren</button>
+        <button id="shareBtn" class="primary-btn" type="button">Delen</button>
+      </footer>
+    </section>
+  </div>
+
+  <div id="resultBackdrop" class="modal-backdrop" hidden>
+    <section class="modal result-modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <header class="modal-header">
+        <div>
+          <div class="success-mark">✓</div>
+          <h2 id="resultTitle">Data gedeeld</h2>
+          <p class="muted">De koppeling is aangemaakt en de notificatie is aangevraagd bij Trimble.</p>
+        </div>
+      </header>
+      <div class="modal-body">
+        <label for="shareLinkOutput">Koppeling</label>
+        <div class="copy-row">
+          <input id="shareLinkOutput" type="text" readonly />
+          <button id="copyBtn" class="secondary-btn" type="button">Kopiëren</button>
+        </div>
+        <div id="mailResult" class="mail-result"></div>
+      </div>
+      <footer class="modal-footer">
+        <button id="doneBtn" class="primary-btn" type="button">Gereed</button>
+      </footer>
+    </section>
+  </div>
+
+  <script src="https://components.connect.trimble.com/trimble-connect-workspace-api/index.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
