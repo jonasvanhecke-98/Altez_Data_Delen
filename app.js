@@ -80,36 +80,12 @@
 
   function bindEvents() {
     $.refreshBtn.addEventListener("click", refreshContext);
-
-    $.openShareBtn.addEventListener(
-      "click",
-      openShareDialog
-    );
-
-    $.closeModalBtn.addEventListener(
-      "click",
-      closeShareDialog
-    );
-
-    $.cancelBtn.addEventListener(
-      "click",
-      closeShareDialog
-    );
-
-    $.toggleAllBtn.addEventListener(
-      "click",
-      toggleAllModels
-    );
-
-    $.shareBtn.addEventListener(
-      "click",
-      submitShare
-    );
-
-    $.copyBtn.addEventListener(
-      "click",
-      copyShareLink
-    );
+    $.openShareBtn.addEventListener("click", openShareDialog);
+    $.closeModalBtn.addEventListener("click", closeShareDialog);
+    $.cancelBtn.addEventListener("click", closeShareDialog);
+    $.toggleAllBtn.addEventListener("click", toggleAllModels);
+    $.shareBtn.addEventListener("click", submitShare);
+    $.copyBtn.addEventListener("click", copyShareLink);
 
     $.doneBtn.addEventListener("click", () => {
       $.resultBackdrop.hidden = true;
@@ -213,13 +189,9 @@
 
   function onWorkspaceEvent(event, args) {
     if (event === "extension.accessToken") {
-
       const value =
         args &&
-        Object.prototype.hasOwnProperty.call(
-          args,
-          "data"
-        )
+        Object.prototype.hasOwnProperty.call(args, "data")
           ? args.data
           : args;
 
@@ -247,7 +219,6 @@
     $.openShareBtn.disabled = true;
 
     try {
-
       const [
         project,
         user,
@@ -262,9 +233,8 @@
       state.user = user;
 
       const loaded = (models || []).filter(
-        m =>
-          String(m.state || "")
-            .toLowerCase() === "loaded"
+        (m) =>
+          String(m.state || "").toLowerCase() === "loaded"
       );
 
       const resolved =
@@ -287,7 +257,6 @@
       hideStatus();
 
     } catch (error) {
-
       console.error(error);
 
       showStatus(
@@ -297,15 +266,12 @@
       );
 
     } finally {
-
       $.refreshBtn.disabled = false;
-
     }
   }
 
   async function resolveLoadedModel(model) {
     try {
-
       const file =
         await state.API.viewer.getLoadedModel(
           model.id
@@ -335,7 +301,6 @@
       };
 
     } catch (error) {
-
       console.warn(
         "getLoadedModel failed; ModelSpec fallback wordt gebruikt",
         model,
@@ -365,8 +330,7 @@
   }
 
   function renderHome() {
-    const count =
-      state.models.length;
+    const count = state.models.length;
 
     $.loadedCount.textContent =
       String(count);
@@ -422,7 +386,6 @@
 
     state.models.forEach(
       (model, index) => {
-
         const row =
           document.createElement("label");
 
@@ -467,7 +430,7 @@
 
     $.modelList
       .querySelectorAll(".model-check")
-      .forEach(cb =>
+      .forEach((cb) =>
         cb.addEventListener(
           "change",
           updateToggleAllLabel
@@ -486,10 +449,10 @@
     const allChecked =
       boxes.length &&
       boxes.every(
-        b => b.checked
+        (b) => b.checked
       );
 
-    boxes.forEach(b => {
+    boxes.forEach((b) => {
       b.checked = !allChecked;
     });
 
@@ -507,7 +470,7 @@
     const allChecked =
       boxes.length &&
       boxes.every(
-        b => b.checked
+        (b) => b.checked
       );
 
     $.toggleAllBtn.textContent =
@@ -523,7 +486,7 @@
       )
     )
       .map(
-        cb =>
+        (cb) =>
           state.models[
             Number(cb.dataset.index)
           ]
@@ -585,14 +548,13 @@
       validateForm();
 
     if (errors.length) {
-
       $.validationBox.hidden =
         false;
 
       $.validationBox.innerHTML =
         errors
           .map(
-            x =>
+            (x) =>
               `<div>• ${escapeHtml(
                 x
               )}</div>`
@@ -623,11 +585,9 @@
     setSharing(true);
 
     try {
-
       let result;
 
       if (DEMO) {
-
         await sleep(650);
 
         result = {
@@ -637,7 +597,6 @@
         };
 
       } else {
-
         const token =
           await getAccessToken();
 
@@ -687,13 +646,12 @@
       $.mailResult.textContent =
         DEMO
           ? `Demo: in de echte extensie wordt de Trimble-deelmail naar ${email} gestuurd.`
-          : `De notificatie is aangevraagd voor ${email}.`;
+          : `Trimble heeft de deelmail aangevraagd voor ${email}.`;
 
       $.resultBackdrop.hidden =
         false;
 
     } catch (error) {
-
       console.error(
         "Share error",
         error
@@ -709,33 +667,14 @@
         technicalError(error);
 
     } finally {
-
       setSharing(false);
-
     }
   }
 
   /*
-   * ---------------------------------------------------------
-   * TRIMBLE SHARE PAYLOAD
-   * ---------------------------------------------------------
-   *
-   * BELANGRIJK:
-   *
-   * versionId wordt NIET meegestuurd.
-   *
-   * De geladen versie blijft wel zichtbaar in onze interface,
-   * maar Trimble Shares verwacht hier:
-   *
-   * {
-   *   id,
-   *   type,
-   *   useLatestVersion
-   * }
-   *
-   * ---------------------------------------------------------
+   * Exacte payload zoals de native
+   * Trimble Connect Share Data-functie.
    */
-
   function buildSharePayload({
     models,
     email,
@@ -744,94 +683,60 @@
     useLatestVersion,
     note
   }) {
+    return {
+      message:
+        note || "",
 
-    const payload = {
+      mode:
+        "PUBLIC",
 
-      mode: "PUBLIC",
+      notify: [
+        {
+          id:
+            email,
 
-      projectId:
-        state.project.id,
+          type:
+            "EMAIL"
+        }
+      ],
+
+      objects:
+        models.map(
+          (model) => ({
+            id:
+              model.fileId,
+
+            type:
+              "FILE",
+
+            useLatestVersion:
+              Boolean(
+                useLatestVersion
+              )
+          })
+        ),
 
       permission:
         permission,
 
-      objects:
-        models.map(model => ({
-          id:
-            model.fileId,
+      projectId:
+        state.project.id,
 
-          type:
-            "FILE",
-
-          useLatestVersion:
-            Boolean(
-              useLatestVersion
-            )
-        })),
-
-      message:
-        note || "",
-
-      notify: [
-        email
-      ],
-
-      expiresOn:
-        dateInputToUtcIso(
+      expiryDate:
+        dateInputToTrimbleExpiry(
           expiry
         )
     };
-
-    /*
-     * Centrale aliases.
-     *
-     * Indien Trimble voor notificatie
-     * of vervaldatum een andere veldnaam
-     * verwacht, hoeven we alleen config.js
-     * aan te passen.
-     */
-
-    const aliases =
-      CONFIG.shareFields || {};
-
-    if (
-      aliases.notify &&
-      aliases.notify !== "notify"
-    ) {
-
-      payload[
-        aliases.notify
-      ] =
-        payload.notify;
-
-      delete payload.notify;
-    }
-
-    if (
-      aliases.expiresOn &&
-      aliases.expiresOn !==
-        "expiresOn"
-    ) {
-
-      payload[
-        aliases.expiresOn
-      ] =
-        payload.expiresOn;
-
-      delete payload.expiresOn;
-    }
-
-    return payload;
   }
 
   async function createShare(
     token,
     payload
   ) {
-
     const apiBase =
       String(
-        CONFIG.coreApiBase || ""
+        CONFIG.coreApiBase ||
+        "https://app.connect.trimble.com/tc/api/2.0"
       ).replace(
         /\/$/,
         ""
@@ -877,7 +782,6 @@
     }
 
     if (!response.ok) {
-
       const error =
         new Error(
           extractServerMessage(
@@ -921,7 +825,6 @@
       result !== "pending" &&
       result !== "denied"
     ) {
-
       state.token =
         result;
 
@@ -931,17 +834,14 @@
     if (
       result === "denied"
     ) {
-
       throw new Error(
         "Toegang tot de Trimble access token is geweigerd. Pas de extensierechten aan in Trimble Connect."
       );
-
     }
 
     if (
       result === "pending"
     ) {
-
       showStatus(
         "Toestemming nodig",
         "Bevestig in Trimble Connect dat deze extensie de access token mag gebruiken en klik daarna opnieuw op Delen.",
@@ -951,7 +851,6 @@
       throw new Error(
         "Toestemming voor API-toegang is nog niet bevestigd."
       );
-
     }
 
     return null;
@@ -976,10 +875,9 @@
         result.objects
       )
     ) {
-
       const found =
         result.objects.find(
-          o =>
+          (o) =>
             o &&
             o.url
         );
@@ -999,7 +897,6 @@
       state.project &&
       state.project.id
     ) {
-
       return (
         "https://web.connect.trimble.com/projects/" +
         encodeURIComponent(
@@ -1024,7 +921,6 @@
     }
 
     try {
-
       await navigator.clipboard.writeText(
         value
       );
@@ -1044,13 +940,11 @@
       );
 
     } catch (_) {
-
       $.shareLinkOutput.select();
 
       document.execCommand(
         "copy"
       );
-
     }
   }
 
@@ -1078,7 +972,6 @@
     message,
     icon
   ) {
-
     $.statusTitle.textContent =
       title;
 
@@ -1108,7 +1001,6 @@
   function extractServerMessage(
     body
   ) {
-
     if (!body) {
       return "";
     }
@@ -1142,7 +1034,6 @@
 
   function technicalError(error) {
     const safe = {
-
       message:
         humanError(error),
 
@@ -1170,7 +1061,6 @@
     date,
     months
   ) {
-
     const d =
       new Date(
         date.getTime()
@@ -1209,7 +1099,6 @@
   function formatDateForInput(
     date
   ) {
-
     const y =
       date.getFullYear();
 
@@ -1232,19 +1121,101 @@
     return `${y}-${m}-${d}`;
   }
 
-  function dateInputToUtcIso(
+  /*
+   * Trimble gebruikt bijvoorbeeld:
+   *
+   * 2026-11-16T23:59:59+0100
+   *
+   * en dus NIET:
+   *
+   * 2026-11-16T22:59:59.000Z
+   */
+  function dateInputToTrimbleExpiry(
     value
   ) {
+    const parts =
+      value.split("-");
 
-    return new Date(
-      `${value}T23:59:59`
-    ).toISOString();
+    const year =
+      Number(parts[0]);
+
+    const month =
+      Number(parts[1]);
+
+    const day =
+      Number(parts[2]);
+
+    const date =
+      new Date(
+        year,
+        month - 1,
+        day,
+        23,
+        59,
+        59,
+        0
+      );
+
+    const offsetMinutes =
+      -date.getTimezoneOffset();
+
+    const sign =
+      offsetMinutes >= 0
+        ? "+"
+        : "-";
+
+    const absolute =
+      Math.abs(
+        offsetMinutes
+      );
+
+    const hours =
+      String(
+        Math.floor(
+          absolute / 60
+        )
+      ).padStart(
+        2,
+        "0"
+      );
+
+    const minutes =
+      String(
+        absolute % 60
+      ).padStart(
+        2,
+        "0"
+      );
+
+    const y =
+      date.getFullYear();
+
+    const m =
+      String(
+        date.getMonth() + 1
+      ).padStart(
+        2,
+        "0"
+      );
+
+    const d =
+      String(
+        date.getDate()
+      ).padStart(
+        2,
+        "0"
+      );
+
+    return (
+      `${y}-${m}-${d}` +
+      `T23:59:59` +
+      `${sign}${hours}${minutes}`
+    );
   }
 
   function isValidEmail(
     value
   ) {
-
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
       value
     );
@@ -1252,7 +1223,7 @@
 
   function sleep(ms) {
     return new Promise(
-      resolve =>
+      (resolve) =>
         setTimeout(
           resolve,
           ms
@@ -1263,12 +1234,11 @@
   function escapeHtml(
     value
   ) {
-
     return String(
       value
     ).replace(
       /[&<>'"]/g,
-      c => ({
+      (c) => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
