@@ -7,10 +7,7 @@
 
   <title>ALTEZ Data Delen</title>
 
-  <link
-    rel="stylesheet"
-    href="styles.css"
-  />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
@@ -45,9 +42,7 @@
         title="Vernieuwen"
         aria-label="Vernieuwen"
       >
-        <span aria-hidden="true">
-          ↻
-        </span>
+        <span aria-hidden="true">↻</span>
       </button>
 
     </header>
@@ -95,7 +90,7 @@
         </strong>
 
         <div class="muted">
-          De momenteel geladen modellen worden gebruikt bij het delen.
+          Alle geladen modellen worden standaard geselecteerd.
         </div>
 
       </div>
@@ -104,7 +99,7 @@
 
 
     <button
-      id="openDataShareBtn"
+      id="openShareBtn"
       class="primary-btn full"
       type="button"
       disabled
@@ -113,37 +108,14 @@
     </button>
 
 
-    <div style="height:10px"></div>
-
-
-    <button
-      id="openViewShareBtn"
-      class="secondary-btn full"
-      type="button"
-      disabled
-    >
-      Huidig venster delen
-    </button>
-
-
     <p class="footnote">
-
-      <strong>Data delen</strong>
-      deelt de gekozen modellen.
-
-      <br><br>
-
-      <strong>Huidig venster delen</strong>
-      bewaart eerst de huidige 3D-weergave als Trimble View
-      en deelt daarna de geladen modellen.
-
+      De share wordt pas aangemaakt wanneer je in het venster op
+      <strong>Delen</strong> klikt.
     </p>
 
   </main>
 
 
-
-  <!-- SHARE DIALOG -->
 
   <div
     id="modalBackdrop"
@@ -173,7 +145,6 @@
 
         </div>
 
-
         <button
           id="closeModalBtn"
           class="icon-btn close-btn"
@@ -187,34 +158,6 @@
 
 
       <div class="modal-body">
-
-
-        <div
-          id="viewShareInfo"
-          class="validation-box"
-          hidden
-          style="margin-bottom:17px"
-        >
-
-          <strong>
-            Huidig 3D-venster
-          </strong>
-
-          <div style="margin-top:5px">
-
-            ALTEZ Data Delen maakt eerst automatisch een
-            Trimble View van de huidige toestand.
-
-            <br><br>
-
-            Hierdoor worden onder andere camerastand,
-            zichtbaarheid, kleuren, snijvlakken,
-            annotaties en metingen in de View opgeslagen.
-
-          </div>
-
-        </div>
-
 
 
         <section class="form-section">
@@ -234,7 +177,6 @@
             </button>
 
           </div>
-
 
           <div
             id="modelList"
@@ -262,12 +204,8 @@
 
           </select>
 
-
           <div class="field-help">
-
-            Iedereen met de koppeling kan de gedeelde
-            modellen openen zonder Trimble-login.
-
+            Iedereen met de koppeling kan de gedeelde modellen openen zonder in te loggen.
           </div>
 
         </section>
@@ -287,11 +225,8 @@
             placeholder="naam@bedrijf.be"
           />
 
-
           <div class="field-help">
-
-            Trimble stuurt de deelmail naar dit adres.
-
+            Trimble stuurt de deelmail naar dit adres. Je kunt die mail daarna doorsturen.
           </div>
 
         </section>
@@ -310,11 +245,10 @@
 
           </label>
 
-
           <textarea
             id="noteInput"
             rows="3"
-            placeholder="Voeg eventueel een bericht toe."
+            placeholder="Voeg eventueel een bericht toe aan de deelmail."
           ></textarea>
 
         </section>
@@ -386,11 +320,8 @@
                 Laatste versie tonen
               </strong>
 
-              <small id="latestVersionHelp">
-
-                Uitgeschakeld deelt de momenteel
-                geselecteerde modelversie.
-
+              <small>
+                Uitgeschakeld deelt de momenteel geladen modelversie.
               </small>
 
             </span>
@@ -406,7 +337,6 @@
           class="validation-box"
           hidden
         ></div>
-
 
 
         <div
@@ -448,7 +378,6 @@
           Annuleren
         </button>
 
-
         <button
           id="shareBtn"
           class="primary-btn"
@@ -465,8 +394,6 @@
   </div>
 
 
-
-  <!-- RESULT -->
 
   <div
     id="resultBackdrop"
@@ -493,11 +420,8 @@
             Data gedeeld
           </h2>
 
-          <p
-            id="resultDescription"
-            class="muted"
-          >
-            De koppeling is aangemaakt.
+          <p class="muted">
+            De koppeling is aangemaakt en de notificatie is aangevraagd bij Trimble.
           </p>
 
         </div>
@@ -505,13 +429,11 @@
       </header>
 
 
-
       <div class="modal-body">
 
         <label for="shareLinkOutput">
           Koppeling
         </label>
-
 
         <div class="copy-row">
 
@@ -531,14 +453,12 @@
 
         </div>
 
-
         <div
           id="mailResult"
           class="mail-result"
         ></div>
 
       </div>
-
 
 
       <footer class="modal-footer">
@@ -559,12 +479,8 @@
 
 
 
-  <script
-    src="https://components.connect.trimble.com/trimble-connect-workspace-api/index.js"
-  ></script>
-
+  <script src="https://components.connect.trimble.com/trimble-connect-workspace-api/index.js"></script>
   <script src="config.js"></script>
-
   <script src="app.js"></script>
 
 </body>
