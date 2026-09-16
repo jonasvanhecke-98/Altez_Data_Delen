@@ -13,31 +13,18 @@
     qs.get("demo") === "1" ||
     window.parent === window;
 
-
   const MASTER_API =
     "https://app.connect.trimble.com/tc/api/2.0";
 
 
   const state = {
-
     API: null,
-
     token: null,
-
     project: null,
-
     user: null,
-
     models: [],
-
     sharing: false,
-
-    coreApiBase: null,
-
-    shareKind: "data",
-
-    createdView: null
-
+    coreApiBase: null
   };
 
 
@@ -69,17 +56,11 @@
     refreshBtn:
       el("refreshBtn"),
 
-    openDataShareBtn:
-      el("openDataShareBtn"),
-
-    openViewShareBtn:
-      el("openViewShareBtn"),
+    openShareBtn:
+      el("openShareBtn"),
 
     modalBackdrop:
       el("modalBackdrop"),
-
-    modalTitle:
-      el("modalTitle"),
 
     closeModalBtn:
       el("closeModalBtn"),
@@ -89,9 +70,6 @@
 
     modalProject:
       el("modalProject"),
-
-    viewShareInfo:
-      el("viewShareInfo"),
 
     modelList:
       el("modelList"),
@@ -117,9 +95,6 @@
     latestVersionInput:
       el("latestVersionInput"),
 
-    latestVersionHelp:
-      el("latestVersionHelp"),
-
     shareBtn:
       el("shareBtn"),
 
@@ -138,12 +113,6 @@
     resultBackdrop:
       el("resultBackdrop"),
 
-    resultTitle:
-      el("resultTitle"),
-
-    resultDescription:
-      el("resultDescription"),
-
     shareLinkOutput:
       el("shareLinkOutput"),
 
@@ -155,7 +124,6 @@
 
     mailResult:
       el("mailResult")
-
   };
 
 
@@ -177,6 +145,7 @@
       loadDemoData();
 
       renderHome();
+
 
       showStatus(
         "Demo-modus",
@@ -201,21 +170,9 @@
     );
 
 
-    $.openDataShareBtn.addEventListener(
+    $.openShareBtn.addEventListener(
       "click",
-      () =>
-        openShareDialog(
-          "data"
-        )
-    );
-
-
-    $.openViewShareBtn.addEventListener(
-      "click",
-      () =>
-        openShareDialog(
-          "view"
-        )
+      openShareDialog
     );
 
 
@@ -270,6 +227,7 @@
         ) {
 
           closeShareDialog();
+
         }
 
       }
@@ -307,30 +265,16 @@
   function loadDemoData() {
 
     state.project = {
-
-      id:
-        "demo-project",
-
-      name:
-        "ALTEZ Demo Project",
-
-      location:
-        "europe"
-
+      id: "demo-project",
+      name: "ALTEZ Demo Project",
+      location: "europe"
     };
 
 
     state.user = {
-
-      email:
-        "jouw.naam@altez.be",
-
-      firstName:
-        "Demo",
-
-      lastName:
-        "Gebruiker"
-
+      email: "jouw.naam@altez.be",
+      firstName: "Demo",
+      lastName: "Gebruiker"
     };
 
 
@@ -341,69 +285,30 @@
     state.models = [
 
       {
-
-        modelId:
-          "m1",
-
-        fileId:
-          "f1",
-
-        versionId:
-          "v17",
-
-        name:
-          "Architectuur.ifc",
-
-        state:
-          "loaded",
-
-        isLatestVersion:
-          true
-
+        modelId: "m1",
+        fileId: "f1",
+        versionId: "v17",
+        name: "Architectuur.ifc",
+        state: "loaded",
+        isLatestVersion: true
       },
 
       {
-
-        modelId:
-          "m2",
-
-        fileId:
-          "f2",
-
-        versionId:
-          "v08",
-
-        name:
-          "Staalconstructie.ifc",
-
-        state:
-          "loaded",
-
-        isLatestVersion:
-          false
-
+        modelId: "m2",
+        fileId: "f2",
+        versionId: "v08",
+        name: "Staalconstructie.ifc",
+        state: "loaded",
+        isLatestVersion: false
       },
 
       {
-
-        modelId:
-          "m3",
-
-        fileId:
-          "f3",
-
-        versionId:
-          "v04",
-
-        name:
-          "Prefab beton.ifc",
-
-        state:
-          "loaded",
-
-        isLatestVersion:
-          true
-
+        modelId: "m3",
+        fileId: "f3",
+        versionId: "v04",
+        name: "Prefab beton.ifc",
+        state: "loaded",
+        isLatestVersion: true
       }
 
     ];
@@ -431,13 +336,9 @@
         await window
           .TrimbleConnectWorkspace
           .connect(
-
             window.parent,
-
             onWorkspaceEvent,
-
             30000
-
           );
 
 
@@ -453,15 +354,11 @@
 
 
       showStatus(
-
         "Geen verbinding",
-
         humanError(
           error
         ),
-
         "!"
-
       );
 
 
@@ -500,13 +397,9 @@
 
 
       if (
-
         typeof value === "string" &&
-
         value !== "pending" &&
-
         value !== "denied"
-
       ) {
 
         state.token =
@@ -527,7 +420,6 @@
       renderHome();
 
       return;
-
     }
 
 
@@ -541,37 +433,24 @@
     $.refreshBtn.disabled =
       true;
 
-    $.openDataShareBtn.disabled =
-      true;
-
-    $.openViewShareBtn.disabled =
+    $.openShareBtn.disabled =
       true;
 
 
     try {
 
       const [
-
         project,
-
         user,
-
         models
-
       ] =
         await Promise.all([
 
-          state.API
-            .project
-            .getProject(),
+          state.API.project.getProject(),
 
-          state.API
-            .user
-            .getUser(),
+          state.API.user.getUser(),
 
-          state.API
-            .viewer
-            .getModels()
+          state.API.viewer.getModels()
 
         ]);
 
@@ -587,6 +466,18 @@
         await resolveRegionalCoreApiBase(
           project
         );
+
+
+      console.log(
+        "ALTEZ project",
+        project
+      );
+
+
+      console.log(
+        "ALTEZ regional Core API",
+        state.coreApiBase
+      );
 
 
       const loaded =
@@ -623,13 +514,9 @@
 
 
       if (
-
         !$.emailInput.value &&
-
         user &&
-
         user.email
-
       ) {
 
         $.emailInput.value =
@@ -652,15 +539,11 @@
 
 
       showStatus(
-
         "Laden mislukt",
-
         humanError(
           error
         ),
-
         "!"
-
       );
 
     }
@@ -682,11 +565,15 @@
 
     const location =
       normalizeLocation(
-
         project &&
         project.location
-
       );
+
+
+    console.log(
+      "Trimble project location:",
+      location
+    );
 
 
     try {
@@ -694,23 +581,15 @@
       const response =
 
         await fetch(
-
           `${MASTER_API}/regions`,
-
           {
-
-            method:
-              "GET",
+            method: "GET",
 
             headers: {
-
               Accept:
                 "application/json"
-
             }
-
           }
-
         );
 
 
@@ -735,10 +614,8 @@
               (item) =>
 
                 normalizeLocation(
-
                   item &&
                   item.location
-
                 ) ===
                 location
 
@@ -746,11 +623,8 @@
 
 
           if (
-
             region &&
-
             region["tc-api"]
-
           ) {
 
             return String(
@@ -881,13 +755,9 @@
     catch (error) {
 
       console.warn(
-
         "getLoadedModel failed; ModelSpec fallback wordt gebruikt",
-
         model,
-
         error
-
       );
 
 
@@ -937,52 +807,29 @@
       state.project
 
         ? `${
-
             state.project.name ||
             "Trimble Connect project"
-
           } · ${count} geladen model${
-
             count === 1
               ? ""
               : "len"
-
           }`
 
         : `${count} geladen model${
-
             count === 1
               ? ""
               : "len"
-
           }`;
 
 
-    const disabled =
+    $.openShareBtn.disabled =
       count === 0;
-
-
-    $.openDataShareBtn.disabled =
-      disabled;
-
-    $.openViewShareBtn.disabled =
-      disabled;
 
   }
 
 
 
-  function openShareDialog(
-    kind
-  ) {
-
-    state.shareKind =
-      kind;
-
-
-    state.createdView =
-      null;
-
+  function openShareDialog() {
 
     clearDialogMessages();
 
@@ -990,11 +837,8 @@
 
 
     if (
-
       state.user &&
-
       state.user.email
-
     ) {
 
       $.emailInput.value =
@@ -1013,73 +857,7 @@
         : "";
 
 
-    const isView =
-      kind === "view";
-
-
-    $.modalTitle.textContent =
-
-      isView
-
-        ? "Huidig venster delen"
-
-        : "Data delen";
-
-
-    $.viewShareInfo.hidden =
-      !isView;
-
-
-    /*
-     * Een huidig venster moet exact
-     * overeenkomen met de momenteel
-     * geladen modellen.
-     *
-     * Daarom worden de modellen in
-     * view-modus niet individueel
-     * aan/uit gezet.
-     */
-    renderModelList(
-      isView
-    );
-
-
-    $.toggleAllBtn.hidden =
-      isView;
-
-
-    /*
-     * Voor een opgeslagen venster
-     * houden we standaard de huidige
-     * modelversies vast.
-     */
-    if (isView) {
-
-      $.latestVersionInput.checked =
-        false;
-
-      $.latestVersionInput.disabled =
-        true;
-
-      $.latestVersionHelp.textContent =
-        "Voor Huidig venster delen worden de huidige modelversies gebruikt.";
-
-    }
-
-    else {
-
-      $.latestVersionInput.disabled =
-        false;
-
-      $.latestVersionInput.checked =
-        Boolean(
-          CONFIG.defaultUseLatestVersion
-        );
-
-      $.latestVersionHelp.textContent =
-        "Uitgeschakeld deelt de momenteel geselecteerde modelversie.";
-
-    }
+    renderModelList();
 
 
     $.modalBackdrop.hidden =
@@ -1107,9 +885,7 @@
 
 
 
-  function renderModelList(
-    lockSelection = false
-  ) {
+  function renderModelList() {
 
     $.modelList.innerHTML =
       "";
@@ -1139,7 +915,6 @@
             class="model-check"
             data-index="${index}"
             checked
-            ${lockSelection ? "disabled" : ""}
           >
 
           <span>
@@ -1164,18 +939,12 @@
         ).textContent =
 
           `Versie: ${
-
             model.versionId ||
             "onbekend"
-
           }${
-
             model.isLatestVersion === false
-
               ? " · niet de laatste versie"
-
               : ""
-
           }`;
 
 
@@ -1200,11 +969,8 @@
         (checkbox) =>
 
           checkbox.addEventListener(
-
             "change",
-
             updateToggleAllLabel
-
           )
 
       );
@@ -1218,33 +984,24 @@
     const boxes =
 
       Array.from(
-
         $.modelList
           .querySelectorAll(
             ".model-check"
           )
-
-      );
-
-
-    const editable =
-      boxes.filter(
-        (box) =>
-          !box.disabled
       );
 
 
     const allChecked =
 
-      editable.length &&
+      boxes.length &&
 
-      editable.every(
+      boxes.every(
         (box) =>
           box.checked
       );
 
 
-    editable.forEach(
+    boxes.forEach(
 
       (box) => {
 
@@ -1267,17 +1024,11 @@
     const boxes =
 
       Array.from(
-
         $.modelList
           .querySelectorAll(
             ".model-check"
           )
-
-      )
-        .filter(
-          (box) =>
-            !box.disabled
-        );
+      );
 
 
     const allChecked =
@@ -1304,22 +1055,6 @@
 
   function selectedModels() {
 
-    /*
-     * Huidig venster:
-     * altijd alle geladen modellen.
-     */
-    if (
-      state.shareKind ===
-      "view"
-    ) {
-
-      return [
-        ...state.models
-      ];
-
-    }
-
-
     return Array.from(
 
       $.modelList
@@ -1333,11 +1068,9 @@
         (checkbox) =>
 
           state.models[
-
             Number(
               checkbox.dataset.index
             )
-
           ]
 
       )
@@ -1381,13 +1114,10 @@
 
 
     if (
-
       !email ||
-
       !isValidEmail(
         email
       )
-
     ) {
 
       errors.push(
@@ -1409,14 +1139,11 @@
 
 
     if (
-
       expiry &&
-
       new Date(
         `${expiry}T23:59:59`
       ) <=
-      new Date()
-
+        new Date()
     ) {
 
       errors.push(
@@ -1504,16 +1231,14 @@
     );
 
 
-    let createdView =
-      null;
-
-
     try {
 
       let result;
 
 
-      if (DEMO) {
+      if (
+        DEMO
+      ) {
 
         await sleep(
           650
@@ -1530,24 +1255,6 @@
 
         };
 
-
-        if (
-          state.shareKind ===
-          "view"
-        ) {
-
-          createdView = {
-
-            id:
-              "demo-view-id",
-
-            name:
-              "ALTEZ extern gedeeld - Demo"
-
-          };
-
-        }
-
       }
 
       else {
@@ -1556,34 +1263,13 @@
           await getAccessToken();
 
 
-        if (!token) {
+        if (
+          !token
+        ) {
 
           throw new Error(
             "Geen Trimble access token ontvangen."
           );
-
-        }
-
-
-        /*
-         * HUIDIG VENSTER:
-         *
-         * Maak eerst een echte Trimble
-         * 3D View van de huidige toestand.
-         */
-        if (
-          state.shareKind ===
-          "view"
-        ) {
-
-          createdView =
-            await createCurrentViewSnapshot(
-              expiry
-            );
-
-
-          state.createdView =
-            createdView;
 
         }
 
@@ -1593,7 +1279,6 @@
         ) {
 
           state.coreApiBase =
-
             await resolveRegionalCoreApiBase(
               state.project
             );
@@ -1620,58 +1305,41 @@
           });
 
 
+        console.log(
+          "ALTEZ Share API:",
+          state.coreApiBase
+        );
+
+
+        console.log(
+          "ALTEZ Share payload:",
+          payload
+        );
+
+
         result =
 
           await createShare(
-
             token,
-
             payload
-
           );
 
       }
 
 
-      let shareUrl =
+      const shareUrl =
         extractShareUrl(
           result
         );
 
 
-      if (!shareUrl) {
+      if (
+        !shareUrl
+      ) {
 
         throw new Error(
           "Trimble heeft de share aangemaakt, maar er werd geen bruikbare share-koppeling teruggegeven."
         );
-
-      }
-
-
-      /*
-       * Voeg bij Huidig venster delen
-       * de Trimble View ID toe aan de
-       * publieke modelshare.
-       */
-      if (
-
-        state.shareKind ===
-        "view" &&
-
-        createdView &&
-
-        createdView.id
-
-      ) {
-
-        shareUrl =
-          buildViewShareUrl(
-
-            shareUrl,
-
-            createdView.id
-
-          );
 
       }
 
@@ -1684,46 +1352,13 @@
         shareUrl;
 
 
-      if (
-        state.shareKind ===
-        "view"
-      ) {
+      $.mailResult.textContent =
 
-        $.resultTitle.textContent =
-          "Huidig venster gedeeld";
+        DEMO
 
+          ? `Demo: in de echte extensie wordt de Trimble-deelmail naar ${email} gestuurd.`
 
-        $.resultDescription.textContent =
-          "De geladen modellen en de huidige Trimble View zijn gekoppeld aan de externe link.";
-
-
-        $.mailResult.innerHTML =
-
-          `Trimble heeft de modelshare aangevraagd voor <strong>${escapeHtml(email)}</strong>.<br><br>` +
-
-          `Gebruik voor het exacte opgeslagen venster de <strong>koppeling hierboven</strong>. ` +
-
-          `De View blijft in het Trimble-project opgeslagen als <strong>${escapeHtml(
-            createdView.name ||
-            createdView.id
-          )}</strong>.`;
-
-      }
-
-      else {
-
-        $.resultTitle.textContent =
-          "Data gedeeld";
-
-
-        $.resultDescription.textContent =
-          "De koppeling is aangemaakt en de notificatie is aangevraagd bij Trimble.";
-
-
-        $.mailResult.textContent =
-          `Trimble heeft de deelmail aangevraagd voor ${email}.`;
-
-      }
+          : `Trimble heeft de deelmail aangevraagd voor ${email}.`;
 
 
       $.resultBackdrop.hidden =
@@ -1732,48 +1367,6 @@
     }
 
     catch (error) {
-
-      /*
-       * Als we een View hebben gemaakt
-       * maar het delen daarna faalt,
-       * ruimen we de tijdelijke View op.
-       */
-      if (
-
-        createdView &&
-
-        createdView.id &&
-
-        state.shareKind ===
-        "view" &&
-
-        !DEMO
-
-      ) {
-
-        try {
-
-          await state.API
-            .view
-            .deleteView(
-              createdView.id
-            );
-
-        }
-
-        catch (
-          cleanupError
-        ) {
-
-          console.warn(
-            "Kon tijdelijke View niet verwijderen.",
-            cleanupError
-          );
-
-        }
-
-      }
-
 
       console.error(
         "Share error",
@@ -1805,89 +1398,6 @@
       );
 
     }
-
-  }
-
-
-
-  async function createCurrentViewSnapshot(
-    expiry
-  ) {
-
-    if (
-
-      !state.API ||
-
-      !state.API.view ||
-
-      typeof state.API.view.createView !==
-      "function"
-
-    ) {
-
-      throw new Error(
-        "De Trimble Workspace API ondersteunt createView niet in deze Viewer."
-      );
-
-    }
-
-
-    const now =
-      new Date();
-
-
-    const viewName =
-      "ALTEZ EXTERN - " +
-      formatViewTimestamp(
-        now
-      );
-
-
-    const description =
-
-      "Automatisch aangemaakt door ALTEZ Data Delen voor extern delen." +
-
-      (
-        expiry
-          ? ` Share geldig tot ${expiry}.`
-          : ""
-      );
-
-
-    const view =
-
-      await state.API
-        .view
-        .createView({
-
-          name:
-            viewName,
-
-          description:
-            description
-
-        });
-
-
-    if (
-      !view ||
-      !view.id
-    ) {
-
-      throw new Error(
-        "Trimble heeft geen geldige View ID teruggegeven."
-      );
-
-    }
-
-
-    console.log(
-      "ALTEZ externe View aangemaakt:",
-      view
-    );
-
-
-    return view;
 
   }
 
@@ -1977,14 +1487,18 @@
     const apiBase =
 
       String(
-
         state.coreApiBase ||
         MASTER_API
-
       ).replace(
         /\/$/,
         ""
       );
+
+
+    console.log(
+      "POST share naar:",
+      `${apiBase}/shares`
+    );
 
 
     const response =
@@ -2093,6 +1607,12 @@
     }
 
 
+    console.log(
+      "ALTEZ Share response:",
+      body
+    );
+
+
     return body;
 
   }
@@ -2120,16 +1640,9 @@
 
 
     if (
-
-      typeof result ===
-      "string" &&
-
-      result !==
-      "pending" &&
-
-      result !==
-      "denied"
-
+      typeof result === "string" &&
+      result !== "pending" &&
+      result !== "denied"
     ) {
 
       state.token =
@@ -2142,8 +1655,7 @@
 
 
     if (
-      result ===
-      "denied"
+      result === "denied"
     ) {
 
       throw new Error(
@@ -2154,18 +1666,13 @@
 
 
     if (
-      result ===
-      "pending"
+      result === "pending"
     ) {
 
       showStatus(
-
         "Toestemming nodig",
-
         "Bevestig in Trimble Connect dat deze extensie de access token mag gebruiken en klik daarna opnieuw op Delen.",
-
         "i"
-
       );
 
 
@@ -2186,7 +1693,9 @@
     result
   ) {
 
-    if (!result) {
+    if (
+      !result
+    ) {
 
       return "";
 
@@ -2212,11 +1721,9 @@
 
 
     if (
-
       Array.isArray(
         result.objects
       )
-
     ) {
 
       const found =
@@ -2251,13 +1758,9 @@
 
 
     if (
-
       token &&
-
       state.project &&
-
       state.project.id
-
     ) {
 
       return (
@@ -2285,65 +1788,15 @@
 
 
 
-  function buildViewShareUrl(
-    shareUrl,
-    viewId
-  ) {
-
-    try {
-
-      const url =
-        new URL(
-          shareUrl
-        );
-
-
-      url.searchParams.set(
-        "viewId",
-        viewId
-      );
-
-
-      return url.toString();
-
-    }
-
-    catch (error) {
-
-      console.warn(
-        "Kon viewId niet aan share URL toevoegen.",
-        error
-      );
-
-
-      const separator =
-        shareUrl.includes("?")
-          ? "&"
-          : "?";
-
-
-      return (
-        shareUrl +
-        separator +
-        "viewId=" +
-        encodeURIComponent(
-          viewId
-        )
-      );
-
-    }
-
-  }
-
-
-
   async function copyShareLink() {
 
     const value =
       $.shareLinkOutput.value;
 
 
-    if (!value) {
+    if (
+      !value
+    ) {
 
       return;
 
@@ -2480,7 +1933,9 @@
     body
   ) {
 
-    if (!body) {
+    if (
+      !body
+    ) {
 
       return "";
 
@@ -2520,19 +1975,15 @@
   ) {
 
     return (
-
       error &&
       error.message
-
     )
 
       ? error.message
 
       : String(
-
           error ||
           "Onbekende fout"
-
         );
 
   }
@@ -2554,13 +2005,6 @@
         error &&
         error.status,
 
-      shareKind:
-        state.shareKind,
-
-      createdViewId:
-        state.createdView &&
-        state.createdView.id,
-
       apiBase:
         error &&
         error.apiBase,
@@ -2581,13 +2025,9 @@
 
 
     return JSON.stringify(
-
       safe,
-
       null,
-
       2
-
     );
 
   }
@@ -2640,11 +2080,8 @@
     d.setDate(
 
       Math.min(
-
         day,
-
         lastDay
-
       )
 
     );
@@ -2692,67 +2129,6 @@
 
 
 
-  function formatViewTimestamp(
-    date
-  ) {
-
-    const day =
-      String(
-        date.getDate()
-      ).padStart(
-        2,
-        "0"
-      );
-
-
-    const month =
-      String(
-        date.getMonth() + 1
-      ).padStart(
-        2,
-        "0"
-      );
-
-
-    const year =
-      date.getFullYear();
-
-
-    const hours =
-      String(
-        date.getHours()
-      ).padStart(
-        2,
-        "0"
-      );
-
-
-    const minutes =
-      String(
-        date.getMinutes()
-      ).padStart(
-        2,
-        "0"
-      );
-
-
-    const seconds =
-      String(
-        date.getSeconds()
-      ).padStart(
-        2,
-        "0"
-      );
-
-
-    return (
-      `${day}-${month}-${year} ${hours}.${minutes}.${seconds}`
-    );
-
-  }
-
-
-
   function dateInputToTrimbleExpiry(
     value
   ) {
@@ -2784,21 +2160,13 @@
     const date =
 
       new Date(
-
         year,
-
         month - 1,
-
         day,
-
         23,
-
         59,
-
         59,
-
         0
-
       );
 
 
@@ -2809,9 +2177,7 @@
     const sign =
 
       offsetMinutes >= 0
-
         ? "+"
-
         : "-";
 
 
@@ -2824,11 +2190,9 @@
     const offsetHours =
 
       String(
-
         Math.floor(
           absolute / 60
         )
-
       ).padStart(
         2,
         "0"
@@ -2905,11 +2269,8 @@
       (resolve) =>
 
         setTimeout(
-
           resolve,
-
           ms
-
         )
 
     );
@@ -2930,20 +2291,15 @@
 
       (character) => ({
 
-        "&":
-          "&amp;",
+        "&": "&amp;",
 
-        "<":
-          "&lt;",
+        "<": "&lt;",
 
-        ">":
-          "&gt;",
+        ">": "&gt;",
 
-        "'":
-          "&#39;",
+        "'": "&#39;",
 
-        '"':
-          "&quot;"
+        '"': "&quot;"
 
       }[
         character
